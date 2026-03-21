@@ -26,8 +26,9 @@ def get_data_loaders(data_dir, batch_size=32, train_split=0.8):
 
     num_classes = len(full_dataset.classes)
     print(f"Found {num_classes} plant diseases classes.")
+    print(full_dataset.classes)
 
-    # Spliting data
+    # Splitting data
     total_size = len(full_dataset)
     train_size = int(train_split * total_size)
     val_size = total_size - train_size
@@ -36,7 +37,7 @@ def get_data_loaders(data_dir, batch_size=32, train_split=0.8):
     train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size], generator=generator)
 
     # Update transform
-    val_dataset.dataset.transfrom = val_transforms
+    val_dataset.dataset.transform = val_transforms
 
     # Create DataLoader
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
