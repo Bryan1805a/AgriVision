@@ -2,7 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:agrivision_app/ml_service.dart';
+
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const AgriVisionApp());
 }
 
@@ -31,25 +34,44 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  // Image storing variable
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
-  // Selecting image processing function (from Camera and Gallery)
+  final AgriVisionService _mlService = AgriVisionService();
+  
+  bool _isLoading = false;
+  Map<String, dynamic>? _predictionResult;
+
+  // Auto load AI model
+  @override
+  void initState() {
+    super.initState();
+    _mlService.loadModel();
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(source: source);
 
       if (pickedFile != null) {
-        // Update UI with new image
         setState(() {
           _selectedImage = File(pickedFile.path);
+          _isLoading = true;
+          _predictionResult = null;
         });
 
         print("Image loaded: ${pickedFile.path}");
+
+        final result = await _mlService.predict(pickedFile.path);
+
+        setState(() {
+          _predictionResult = result;
+          _isLoading = false;
+        });
       }
     } catch (e) {
       print("ERROR when selecting image: $e");
+      setState(() { _isLoading = false; });
     }
   }
 
@@ -70,7 +92,8 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-      body: Padding(
+      // SingleChildScrollView
+      body: SingleChildScrollView( 
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -117,6 +140,44 @@ class _MainScreenState extends State<MainScreen> {
             ),
 
             const SizedBox(height: 24),
+
+            // Wrong prediction section
+            if (_isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(color: Color(0xFF4ca64c)),
+                ),
+              )
+            else if (_predictionResult != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: 24),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFf1f8e9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFc5e1a5)),
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'KẾT QUẢ CHẨN ĐOÁN',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${_predictionResult!['disease']}',
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFFd32f2f)),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Độ tin cậy: ${_predictionResult!['confidence']}%',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF388e3c)),
+                    ),
+                  ],
+                ),
+              ),
 
             // Open camera button
             ElevatedButton.icon(

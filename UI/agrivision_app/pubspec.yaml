@@ -35,6 +35,8 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   image_picker: ^1.2.1
+  tflite_flutter: ^0.12.1
+  image: ^4.2.0
 
 dev_dependencies:
   flutter_test:
@@ -88,3 +90,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+  assets:
+    - assets/models/agrivision_model_float32.tflite
