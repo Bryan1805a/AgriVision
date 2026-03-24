@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   runApp(const AgriVisionApp());
@@ -29,6 +31,28 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  // Image storing variable
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+
+  // Selecting image processing function (from Camera and Gallery)
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(source: source);
+
+      if (pickedFile != null) {
+        // Update UI with new image
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+
+        print("Image loaded: ${pickedFile.path}");
+      }
+    } catch (e) {
+      print("ERROR when selecting image: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +77,7 @@ class _MainScreenState extends State<MainScreen> {
           children: [
             // Image area / Tutorial board
             Container(
-              height: 220,
+              height: 250,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(15),
@@ -62,34 +86,41 @@ class _MainScreenState extends State<MainScreen> {
                   width: 2.5,
                 ),
               ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.image_search_rounded,
-                    size: 80,
-                    color: Color(0xFFa5d6a7),
+              child: _selectedImage != null
+                ? ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    _selectedImage!,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
                   ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Bấm nút bên dưới để chọn ảnh cây',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 16,
+                )
+                : const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.image_search_rounded,
+                      size: 80,
+                      color: Color(0xFFa5d6a7),
                     ),
-                  ),
-                ],
-              ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Bấm nút bên dưới để chọn ảnh cây',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
             ),
 
             const SizedBox(height: 24),
 
             // Open camera button
             ElevatedButton.icon(
-              onPressed: () {
-                // Call camera function
-                // Call AgriVisionService().predict()
-              },
+              onPressed: () => _pickImage(ImageSource.camera),
               icon: const Icon(Icons.camera_alt, size: 28),
               label: const Text(
                 'Mở Máy Ảnh Để Chụp',
@@ -109,9 +140,7 @@ class _MainScreenState extends State<MainScreen> {
 
             // Choose image from gallery button
             ElevatedButton.icon(
-              onPressed: () {
-                // Call open gallery function
-              },
+              onPressed: () => _pickImage(ImageSource.gallery),
               icon: const Icon(Icons.photo_library, size: 28),
               label: const Text(
                 'Chọn Ảnh Từ Thư Viện',
