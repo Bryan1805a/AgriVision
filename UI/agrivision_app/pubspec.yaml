@@ -37,6 +37,7 @@ dependencies:
   image_picker: ^1.2.1
   tflite_flutter: ^0.12.1
   image: ^4.2.0
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
@@ -91,4 +92,4 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
   assets:
-    - assets/models/agrivision_model_float32.tflite
+    - assets/models/agrivision_tf_model.tflite
